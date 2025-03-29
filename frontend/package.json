@@ -1,0 +1,62 @@
+{
+  "name": "studyhub-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.14.9",
+    "@mui/lab": "^5.0.0-alpha.144",
+    "@mui/material": "^5.14.9",
+    "@reduxjs/toolkit": "^1.9.5",
+    "axios": "^1.5.0",
+    "date-fns": "^2.30.0",
+    "draft-js": "^0.11.7",
+    "jwt-decode": "^3.1.2",
+    "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.46.1",
+    "react-markdown": "^8.0.7",
+    "react-redux": "^8.1.2",
+    "react-router-dom": "^6.16.0",
+    "recharts": "^2.8.0",
+    "yup": "^1.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.3",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/draft-js": "^0.11.13",
+    "@types/jest": "^29.5.4",
+    "@types/node": "^20.6.2",
+    "@types/react": "^18.2.21",
+    "@types/react-beautiful-dnd": "^13.1.4",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.4",
+    "eslint": "^8.49.0",
+    "eslint-config-react-app": "^7.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9",
+    "vitest": "^0.34.4"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src --ext ts,tsx"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
