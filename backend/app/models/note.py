@@ -53,12 +53,6 @@ class NoteInDB(NoteBase):
         json_encoders={PyObjectId: str}
     )
 
-    # Pour rétrocompatibilité avec Pydantic v1
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {PyObjectId: str}
-
 
 class NoteResponse(NoteBase):
     """
@@ -74,10 +68,6 @@ class NoteResponse(NoteBase):
     model_config = ConfigDict(
         populate_by_name=True
     )
-    
-    # Pour rétrocompatibilité avec Pydantic v1
-    class Config:
-        allow_population_by_field_name = True
 
 
 class NoteWithSummary(NoteResponse):
@@ -106,12 +96,6 @@ class NoteVersion(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={PyObjectId: str}
     )
-    
-    # Pour rétrocompatibilité avec Pydantic v1
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {PyObjectId: str}
 
 
 class NoteFilter(BaseModel):
@@ -147,9 +131,3 @@ class MediaItem(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={PyObjectId: str}
     )
-    
-    # Pour rétrocompatibilité avec Pydantic v1
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {PyObjectId: str}
