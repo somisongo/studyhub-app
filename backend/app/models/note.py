@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.db.mongodb import PyObjectId
 
@@ -46,6 +46,14 @@ class NoteInDB(NoteBase):
     version: int = 1
     is_deleted: bool = False
 
+    # Configuration compatible avec Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={PyObjectId: str}
+    )
+
+    # Pour rétrocompatibilité avec Pydantic v1
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
@@ -62,6 +70,12 @@ class NoteResponse(NoteBase):
     updated_at: Optional[datetime] = None
     version: int
     
+    # Configuration compatible avec Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True
+    )
+    
+    # Pour rétrocompatibilité avec Pydantic v1
     class Config:
         allow_population_by_field_name = True
 
@@ -86,6 +100,14 @@ class NoteVersion(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     created_by: str
     
+    # Configuration compatible avec Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={PyObjectId: str}
+    )
+    
+    # Pour rétrocompatibilité avec Pydantic v1
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
@@ -119,6 +141,14 @@ class MediaItem(BaseModel):
     position: Optional[int] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
+    # Configuration compatible avec Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={PyObjectId: str}
+    )
+    
+    # Pour rétrocompatibilité avec Pydantic v1
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
