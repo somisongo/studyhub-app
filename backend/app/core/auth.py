@@ -147,15 +147,23 @@ async def get_current_user(
     user = await get_user(db, user_id=token_data.user_id)
     if user is None:
         raise credentials_exception
-    if not user.is_active:
+    return user
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Dépendance pour obtenir l'utilisateur actif actuel.
+    """
+    if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Utilisateur inactif"
         )
-    return user
+    return current_user
 
 async def get_current_active_superuser(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> User:
     """
     Dépendance pour obtenir l'utilisateur superutilisateur actuel.
