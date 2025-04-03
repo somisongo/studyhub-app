@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 from app.db.mongodb import PyObjectId
 
@@ -42,8 +42,16 @@ class UserInDB(UserBase):
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
-    preferences: dict = {}
+    preferences: Dict[str, Any] = {}
 
+    # Configuration compatible avec Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={PyObjectId: str}
+    )
+
+    # Pour rétrocompatibilité avec Pydantic v1
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
@@ -58,5 +66,11 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
+    # Configuration compatible avec Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True
+    )
+
+    # Pour rétrocompatibilité avec Pydantic v1
     class Config:
         allow_population_by_field_name = True
