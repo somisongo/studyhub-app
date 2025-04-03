@@ -23,11 +23,8 @@ class PyObjectId(ObjectId):
     @classmethod
     def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: Any):
         from pydantic_core import core_schema
-        return core_schema.with_info_schema(
-            core_schema.string_schema(),
-            serialization=core_schema.plain_serializer_function_ser_schema(
-                lambda instance: str(instance)
-            ),
+        return core_schema.str_schema(
+            serialization=core_schema.to_string_ser_schema(),
         )
 
     @classmethod
