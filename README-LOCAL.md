@@ -46,7 +46,40 @@ make setup-local
 cd backend
 python -m venv venv
 venv\Scripts\activate
+```
+
+#### Installation des dépendances avec problèmes d'installation
+
+Nous fournissons plusieurs options pour les dépendances:
+
+```bash
+# Option 1: Installer uniquement les dépendances minimales (recommandé pour démarrer)
+pip install --upgrade pip setuptools wheel
+pip install -r requirements-minimal.txt
+
+# Option 2: Installer toutes les dépendances avec des versions flexibles
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
+
+# Option 3: Installer les dépendances par groupes
+pip install --upgrade pip setuptools wheel
+pip install fastapi uvicorn pydantic python-multipart email-validator
+pip install sqlalchemy alembic psycopg2-binary pymongo motor
+pip install python-jose passlib bcrypt python-dotenv
+pip install aiofiles aiohttp pika pillow tqdm loguru httpx tenacity
+pip install pytest pytest-cov pytest-asyncio
+
+# Installer les packages d'IA uniquement si nécessaire et un par un
+pip install torch
+pip install transformers
+pip install numpy pandas scikit-learn
+pip install nltk spacy gensim
+pip install pytesseract opencv-python
+```
+
+Après l'installation du backend, installez les dépendances frontend:
+
+```bash
 cd ..
 cd frontend
 npm install
@@ -124,6 +157,13 @@ npm run dev
 
 ## Dépannage
 
+### Erreurs d'installation des packages Python
+
+- Si vous rencontrez des erreurs avec `torch`, `transformers` ou d'autres packages d'IA:
+  1. Utilisez le fichier `requirements-minimal.txt` pour commencer
+  2. Installez les packages problématiques séparément sans spécifier de version
+  3. En cas d'erreur avec setuptools, exécutez `pip install --upgrade pip setuptools wheel` avant d'installer d'autres packages
+
 ### Erreur de connexion aux bases de données
 
 - Vérifiez que PostgreSQL et MongoDB sont en cours d'exécution
@@ -143,4 +183,13 @@ Pour nettoyer l'environnement de développement:
 
 ```bash
 make clean
+
+# Sans Make
+cd backend
+deactivate
+rmdir /s /q venv
+cd ..
+cd frontend
+rmdir /s /q node_modules
+cd ..
 ```
