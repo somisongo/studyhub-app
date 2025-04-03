@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.db.mongodb import PyObjectId
+from app.db.mongodb import ObjectIdField, PyObjectId
 
 
 class NoteBase(BaseModel):
@@ -39,7 +39,7 @@ class NoteInDB(NoteBase):
     """
     Modèle de la note en base de données.
     """
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: ObjectIdField = Field(default_factory=PyObjectId, alias="_id")
     creator_id: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
@@ -82,7 +82,7 @@ class NoteVersion(BaseModel):
     """
     Version d'une note pour l'historique.
     """
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: ObjectIdField = Field(default_factory=PyObjectId, alias="_id")
     note_id: str
     content: str
     title: str
@@ -114,7 +114,7 @@ class MediaItem(BaseModel):
     """
     Élément multimédia attaché à une note.
     """
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: ObjectIdField = Field(default_factory=PyObjectId, alias="_id")
     note_id: str
     type: str  # 'image', 'audio', 'video', 'pdf'
     url: str
