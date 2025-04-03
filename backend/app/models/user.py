@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
-from app.db.mongodb import PyObjectId
+from app.db.mongodb import ObjectIdField, PyObjectId
 
 
 class UserBase(BaseModel):
@@ -38,7 +38,7 @@ class UserInDB(UserBase):
     """
     Modèle de l'utilisateur en base de données.
     """
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: ObjectIdField = Field(default_factory=PyObjectId, alias="_id")
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
