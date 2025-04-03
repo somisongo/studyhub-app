@@ -1,6 +1,7 @@
 import motor.motor_asyncio
 from fastapi import Depends
 from bson.objectid import ObjectId
+from typing import Any
 
 from app.core.config import settings
 
@@ -11,10 +12,26 @@ db = client[settings.MONGODB_DB]
 class PyObjectId(ObjectId):
     """
     Classe personnalisée pour la gestion des ObjectId MongoDB avec Pydantic.
+    Compatible avec Pydantic v1 et v2.
     """
+    # Pour Pydantic v1
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
+
+    # Pour Pydantic v2
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: Any):
+        from pydantic_core import core_schema
+        return core_schema.json_schema(
+            schema=core_schema.chain_schema([
+                core_schema.string_schema(),
+                core_schema.no_info_plain_validator_function(cls.validate),
+            ]),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda instance: str(instance)
+            ),
+        )
 
     @classmethod
     def validate(cls, v):
@@ -22,12 +39,12 @@ class PyObjectId(ObjectId):
             raise ValueError("Invalid ObjectId")
         return ObjectId(v)
 
-    # Mise à jour pour Pydantic v2
+    # Pour Pydantic v2 JSON Schema
     @classmethod
     def __get_pydantic_json_schema__(cls, _schema_generator, _field_schema):
         return {"type": "string"}
 
-    # Conserver l'ancienne méthode pour rétrocompatibilité
+    # Pour Pydantic v1 (rétrocompatibilité)
     @classmethod
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
