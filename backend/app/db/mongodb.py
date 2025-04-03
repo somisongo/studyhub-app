@@ -22,6 +22,12 @@ class PyObjectId(ObjectId):
             raise ValueError("Invalid ObjectId")
         return ObjectId(v)
 
+    # Mise à jour pour Pydantic v2
+    @classmethod
+    def __get_pydantic_json_schema__(cls, _schema_generator, _field_schema):
+        return {"type": "string"}
+
+    # Conserver l'ancienne méthode pour rétrocompatibilité
     @classmethod
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
