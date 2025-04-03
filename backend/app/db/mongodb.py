@@ -1,7 +1,7 @@
 import motor.motor_asyncio
 from fastapi import Depends
 from bson.objectid import ObjectId
-from typing import Any
+from typing import Any, Annotated
 
 from app.core.config import settings
 
@@ -19,14 +19,6 @@ class PyObjectId(ObjectId):
     def __get_validators__(cls):
         yield cls.validate
 
-    # Pour Pydantic v2
-    @classmethod
-    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: Any):
-        from pydantic_core import core_schema
-        return core_schema.str_schema(
-            serialization=core_schema.to_string_ser_schema(),
-        )
-
     @classmethod
     def validate(cls, v):
         if not ObjectId.is_valid(v):
@@ -43,11 +35,34 @@ class PyObjectId(ObjectId):
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
 
+
+# Pour Pydantic v2
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
+from pydantic_core import CoreSchema, core_schema
+
+def validate_object_id(v: Any) -> ObjectId:
+    if isinstance(v, ObjectId):
+        return v
+    if ObjectId.is_valid(v):
+        return ObjectId(v)
+    raise ValueError("Invalid ObjectId")
+
+def object_id_schema(field_name: str) -> CoreSchema:
+    return core_schema.no_info_after_validator_function(
+        validate_object_id,
+        core_schema.str_schema()
+    )
+
+# Alias pour l'utilisation avec Annotated
+ObjectIdField = Annotated[ObjectId, object_id_schema]
+
+
 async def get_database():
     """
     Dépendance pour obtenir une connexion à la base de données MongoDB.
     """
     return db
+
 
 async def init_mongodb():
     """
