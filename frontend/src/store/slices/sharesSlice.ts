@@ -32,7 +32,7 @@ const initialState: SharesState = {
 // Thunks
 export const fetchSharedByMe = createAsyncThunk(
   'shares/fetchSharedByMe',
-  async (_, { rejectWithValue }) => {
+  async (activeOnly: boolean = true, { rejectWithValue }) => {
     try {
       // Dans une implémentation réelle, appel API pour récupérer les partages
       // Pour le développement, simulez des données
@@ -56,7 +56,8 @@ export const fetchSharedByMe = createAsyncThunk(
           active: true,
         },
       ];
-      return shares;
+      
+      return shares.filter(share => !activeOnly || share.active);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Échec du chargement des partages');
     }
@@ -65,7 +66,7 @@ export const fetchSharedByMe = createAsyncThunk(
 
 export const fetchSharedWithMe = createAsyncThunk(
   'shares/fetchSharedWithMe',
-  async (_, { rejectWithValue }) => {
+  async (activeOnly: boolean = true, { rejectWithValue }) => {
     try {
       // Dans une implémentation réelle, appel API pour récupérer les partages
       // Pour le développement, simulez des données
@@ -89,7 +90,8 @@ export const fetchSharedWithMe = createAsyncThunk(
           active: true,
         },
       ];
-      return shares;
+      
+      return shares.filter(share => !activeOnly || share.active);
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Échec du chargement des partages');
     }
@@ -105,9 +107,16 @@ const sharesSlice = createSlice({
       state.error = null;
     },
     deactivateShare: (state, action: PayloadAction<string>) => {
-      const shareInSharedByMe = state.sharedByMe.find(share => share.id === action.payload);
-      if (shareInSharedByMe) {
-        shareInSharedByMe.active = false;
+      const shareId = action.payload;
+      
+      const sharedByMeIndex = state.sharedByMe.findIndex(share => share.id === shareId);
+      if (sharedByMeIndex !== -1) {
+        state.sharedByMe[sharedByMeIndex].active = false;
+      }
+      
+      const sharedWithMeIndex = state.sharedWithMe.findIndex(share => share.id === shareId);
+      if (sharedWithMeIndex !== -1) {
+        state.sharedWithMe[sharedWithMeIndex].active = false;
       }
     },
   },
@@ -126,7 +135,7 @@ const sharesSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       });
-    
+
     // Fetch shares with me
     builder
       .addCase(fetchSharedWithMe.pending, (state) => {
