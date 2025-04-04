@@ -32,7 +32,7 @@ const initialState: SharesState = {
 // Thunks
 export const fetchSharedByMe = createAsyncThunk(
   'shares/fetchSharedByMe',
-  async (activeOnly: boolean = true, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       // Dans une implémentation réelle, appel API pour récupérer les partages
       // Pour le développement, simulez des données
@@ -41,7 +41,7 @@ export const fetchSharedByMe = createAsyncThunk(
           id: '1',
           note_id: '1',
           permissions: 'read',
-          target_email: 'colleague@example.com',
+          target_email: 'collaborateur@example.com',
           source_user_id: '1',
           created_at: new Date().toISOString(),
           active: true,
@@ -50,14 +50,13 @@ export const fetchSharedByMe = createAsyncThunk(
           id: '2',
           note_id: '2',
           permissions: 'edit',
-          target_email: 'friend@example.com',
+          target_email: 'autre@example.com',
           source_user_id: '1',
           created_at: new Date().toISOString(),
           active: true,
         },
       ];
-      
-      return shares.filter(share => !activeOnly || share.active);
+      return shares;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Échec du chargement des partages');
     }
@@ -66,7 +65,7 @@ export const fetchSharedByMe = createAsyncThunk(
 
 export const fetchSharedWithMe = createAsyncThunk(
   'shares/fetchSharedWithMe',
-  async (activeOnly: boolean = true, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       // Dans une implémentation réelle, appel API pour récupérer les partages
       // Pour le développement, simulez des données
@@ -80,18 +79,8 @@ export const fetchSharedWithMe = createAsyncThunk(
           created_at: new Date().toISOString(),
           active: true,
         },
-        {
-          id: '4',
-          note_id: '4',
-          permissions: 'edit',
-          target_user_id: '1',
-          source_user_id: '3',
-          created_at: new Date().toISOString(),
-          active: true,
-        },
       ];
-      
-      return shares.filter(share => !activeOnly || share.active);
+      return shares;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Échec du chargement des partages');
     }
@@ -107,21 +96,14 @@ const sharesSlice = createSlice({
       state.error = null;
     },
     deactivateShare: (state, action: PayloadAction<string>) => {
-      const shareId = action.payload;
-      
-      const sharedByMeIndex = state.sharedByMe.findIndex(share => share.id === shareId);
-      if (sharedByMeIndex !== -1) {
-        state.sharedByMe[sharedByMeIndex].active = false;
-      }
-      
-      const sharedWithMeIndex = state.sharedWithMe.findIndex(share => share.id === shareId);
-      if (sharedWithMeIndex !== -1) {
-        state.sharedWithMe[sharedWithMeIndex].active = false;
+      const share = state.sharedByMe.find(s => s.id === action.payload);
+      if (share) {
+        share.active = false;
       }
     },
   },
   extraReducers: (builder) => {
-    // Fetch shares by me
+    // Fetch shared by me
     builder
       .addCase(fetchSharedByMe.pending, (state) => {
         state.loading = true;
@@ -135,8 +117,8 @@ const sharesSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       });
-
-    // Fetch shares with me
+    
+    // Fetch shared with me
     builder
       .addCase(fetchSharedWithMe.pending, (state) => {
         state.loading = true;
