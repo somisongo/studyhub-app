@@ -41,7 +41,7 @@ export const fetchSharedByMe = createAsyncThunk(
           id: '1',
           note_id: '1',
           permissions: 'read',
-          target_email: 'collaborator@example.com',
+          target_email: 'user@example.com',
           source_user_id: '1',
           created_at: new Date().toISOString(),
           active: true,
@@ -50,7 +50,7 @@ export const fetchSharedByMe = createAsyncThunk(
           id: '2',
           note_id: '2',
           permissions: 'edit',
-          target_email: 'teacher@example.com',
+          target_email: 'collaborator@example.com',
           source_user_id: '1',
           created_at: new Date().toISOString(),
           active: true,
@@ -104,16 +104,16 @@ const sharesSlice = createSlice({
     resetSharesError: (state) => {
       state.error = null;
     },
-    updateShareStatus: (state, action: PayloadAction<{ id: string; active: boolean }>) => {
-      const { id, active } = action.payload;
-      const share = state.sharedByMe.find(s => s.id === id);
-      if (share) {
-        share.active = active;
+    deactivateShare: (state, action: PayloadAction<string>) => {
+      const shareId = action.payload;
+      const sharedByMeIndex = state.sharedByMe.findIndex(share => share.id === shareId);
+      if (sharedByMeIndex !== -1) {
+        state.sharedByMe[sharedByMeIndex].active = false;
       }
     },
   },
   extraReducers: (builder) => {
-    // Fetch shares by me
+    // Fetch shared by me
     builder
       .addCase(fetchSharedByMe.pending, (state) => {
         state.loading = true;
@@ -128,7 +128,7 @@ const sharesSlice = createSlice({
         state.error = action.payload as string;
       });
     
-    // Fetch shares with me
+    // Fetch shared with me
     builder
       .addCase(fetchSharedWithMe.pending, (state) => {
         state.loading = true;
@@ -145,5 +145,5 @@ const sharesSlice = createSlice({
   },
 });
 
-export const { resetSharesError, updateShareStatus } = sharesSlice.actions;
+export const { resetSharesError, deactivateShare } = sharesSlice.actions;
 export default sharesSlice.reducer;
