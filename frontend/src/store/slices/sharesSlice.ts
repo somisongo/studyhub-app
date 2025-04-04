@@ -41,7 +41,7 @@ export const fetchSharedByMe = createAsyncThunk(
           id: '1',
           note_id: '1',
           permissions: 'read',
-          target_email: 'collaborateur@example.com',
+          target_email: 'colleague@example.com',
           source_user_id: '1',
           created_at: new Date().toISOString(),
           active: true,
@@ -50,7 +50,7 @@ export const fetchSharedByMe = createAsyncThunk(
           id: '2',
           note_id: '2',
           permissions: 'edit',
-          target_email: 'autre@example.com',
+          target_email: 'friend@example.com',
           source_user_id: '1',
           created_at: new Date().toISOString(),
           active: true,
@@ -79,6 +79,15 @@ export const fetchSharedWithMe = createAsyncThunk(
           created_at: new Date().toISOString(),
           active: true,
         },
+        {
+          id: '4',
+          note_id: '4',
+          permissions: 'edit',
+          target_user_id: '1',
+          source_user_id: '3',
+          created_at: new Date().toISOString(),
+          active: true,
+        },
       ];
       return shares;
     } catch (error: any) {
@@ -96,14 +105,19 @@ const sharesSlice = createSlice({
       state.error = null;
     },
     deactivateShare: (state, action: PayloadAction<string>) => {
-      const share = state.sharedByMe.find(s => s.id === action.payload);
-      if (share) {
-        share.active = false;
+      const shareInSharedByMe = state.sharedByMe.find(share => share.id === action.payload);
+      if (shareInSharedByMe) {
+        shareInSharedByMe.active = false;
+      }
+      
+      const shareInSharedWithMe = state.sharedWithMe.find(share => share.id === action.payload);
+      if (shareInSharedWithMe) {
+        shareInSharedWithMe.active = false;
       }
     },
   },
   extraReducers: (builder) => {
-    // Fetch shared by me
+    // Fetch shares shared by me
     builder
       .addCase(fetchSharedByMe.pending, (state) => {
         state.loading = true;
@@ -118,7 +132,7 @@ const sharesSlice = createSlice({
         state.error = action.payload as string;
       });
     
-    // Fetch shared with me
+    // Fetch shares shared with me
     builder
       .addCase(fetchSharedWithMe.pending, (state) => {
         state.loading = true;
