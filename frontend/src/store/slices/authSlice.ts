@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
 
 // Types
 interface User {
@@ -12,190 +11,108 @@ interface User {
 }
 
 interface AuthState {
-  user: User | null;
   isAuthenticated: boolean;
+  user: User | null;
   loading: boolean;
   error: string | null;
   token: string | null;
 }
 
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
+// État initial
+const initialState: AuthState = {
+  isAuthenticated: false,
+  user: null,
+  loading: false,
+  error: null,
+  token: localStorage.getItem('token'),
+};
 
-interface RegisterCredentials {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-}
-
-// Actions asynchrones
+// Thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: LoginCredentials, { rejectWithValue }) => {
+  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const formData = new FormData();
-      formData.append('username', credentials.email); // API utilise 'username' mais nous utilisons 'email'
-      formData.append('password', credentials.password);
-
-      const response = await axios.post<AuthResponse>(
-        '/api/v1/auth/token',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      // Stockage des tokens dans localStorage
-      localStorage.setItem('accessToken', response.data.access_token);
-      localStorage.setItem('refreshToken', response.data.refresh_token);
-
-      // Configuration d'Axios pour inclure le token dans les futures requêtes
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-
-      // Décodage du token pour obtenir les informations utilisateur
-      const decodedToken = jwtDecode<{ sub: string }>(response.data.access_token);
-      const userResponse = await axios.get<User>(`/api/v1/users/${decodedToken.sub}`);
-
-      return {
-        user: userResponse.data,
-        token: response.data.access_token,
+      // Dans une implémentation réelle, appel API pour la connexion
+      // Présentement, simulez une connexion réussie en développement
+      const user = {
+        id: '1',
+        name: 'Utilisateur Test',
+        email,
+        is_active: true,
+        is_superuser: false,
       };
+      const token = 'fake-jwt-token';
+      localStorage.setItem('token', token);
+      return { user, token };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || 'Erreur lors de la connexion'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Échec de connexion');
     }
   }
 );
 
 export const register = createAsyncThunk(
   'auth/register',
-  async (credentials: RegisterCredentials, { rejectWithValue, dispatch }) => {
+  async ({ name, email, password }: { name: string; email: string; password: string }, { rejectWithValue }) => {
     try {
-      // Enregistrement de l'utilisateur
-      await axios.post('/api/v1/auth/register', credentials);
-
-      // Connexion automatique après enregistrement
-      const loginResult = await dispatch(
-        login({ email: credentials.email, password: credentials.password })
-      );
-
-      // Si la connexion échoue, rejeter l'enregistrement
-      if (login.rejected.match(loginResult)) {
-        return rejectWithValue(loginResult.payload || 'Erreur lors de la connexion après enregistrement');
-      }
-
-      return loginResult.payload;
+      // Dans une implémentation réelle, appel API pour l'inscription
+      // Présentement, simulez une inscription réussie en développement
+      return { message: 'Inscription réussie' };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || 'Erreur lors de l\'enregistrement'
-      );
+      return rejectWithValue(error.response?.data?.message || 'Échec d\'inscription');
     }
   }
 );
 
-export const logout = createAsyncThunk('auth/logout', async () => {
-  // Suppression des tokens du localStorage
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-
-  // Suppression du token d'authorization dans Axios
-  delete axios.defaults.headers.common['Authorization'];
-});
+export const logout = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Supprimer le token du stockage local
+      localStorage.removeItem('token');
+      return null;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Échec de déconnexion');
+    }
+  }
+);
 
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
-  async (_, { rejectWithValue, dispatch }) => {
-    // Récupération du token depuis localStorage
-    const token = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!token || !refreshToken) {
-      return rejectWithValue('Non authentifié');
-    }
-
+  async (_, { rejectWithValue }) => {
     try {
-      // Configuration d'Axios pour inclure le token
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-      // Vérification de la validité du token en récupérant l'utilisateur
-      const decodedToken = jwtDecode<{ sub: string; exp: number }>(token);
-
-      // Vérification de l'expiration du token
-      const isExpired = decodedToken.exp * 1000 < Date.now();
-
-      if (isExpired) {
-        // Rafraîchissement du token
-        try {
-          const response = await axios.post<AuthResponse>('/api/v1/auth/refresh', {
-            refresh_token: refreshToken,
-          });
-
-          localStorage.setItem('accessToken', response.data.access_token);
-          localStorage.setItem('refreshToken', response.data.refresh_token);
-          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-
-          // Récupération des informations utilisateur
-          const userResponse = await axios.get<User>(`/api/v1/users/${decodedToken.sub}`);
-
-          return {
-            user: userResponse.data,
-            token: response.data.access_token,
-          };
-        } catch (refreshError) {
-          // Si le rafraîchissement échoue, déconnexion
-          dispatch(logout());
-          return rejectWithValue('Session expirée');
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return null;
       }
-
-      // Récupération des informations utilisateur
-      const userResponse = await axios.get<User>(`/api/v1/users/${decodedToken.sub}`);
-
-      return {
-        user: userResponse.data,
-        token,
+      
+      // Dans une implémentation réelle, vérifiez le token auprès du serveur
+      // Pour le développement, simulez un utilisateur authentifié
+      const user = {
+        id: '1',
+        name: 'Utilisateur Test',
+        email: 'test@example.com',
+        is_active: true,
+        is_superuser: false,
       };
-    } catch (error) {
-      // En cas d'erreur, déconnexion
-      dispatch(logout());
-      return rejectWithValue('Erreur d\'authentification');
+      return { user, token };
+    } catch (error: any) {
+      return rejectWithValue('Session expirée ou invalide');
     }
   }
 );
-
-// État initial
-const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
-  loading: false,
-  error: null,
-  token: null,
-};
 
 // Slice
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: (state) => {
+    resetError: (state) => {
       state.error = null;
     },
-    // Autres réducteurs si nécessaire
   },
   extraReducers: (builder) => {
+    // Login
     builder
-      // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -209,37 +126,46 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      // Register
+      });
+
+    // Register
+    builder
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(register.fulfilled, (state) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload?.user;
-        state.token = action.payload?.token;
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      // Logout
+      });
+
+    // Logout
+    builder
       .addCase(logout.fulfilled, (state) => {
-        state.user = null;
         state.isAuthenticated = false;
+        state.user = null;
         state.token = null;
-      })
-      // Check Auth
+      });
+
+    // Check Auth
+    builder
       .addCase(checkAuth.pending, (state) => {
         state.loading = true;
       })
-      .addCase(checkAuth.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+      .addCase(checkAuth.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        if (action.payload) {
+          state.isAuthenticated = true;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+        } else {
+          state.isAuthenticated = false;
+          state.user = null;
+          state.token = null;
+        }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.loading = false;
@@ -250,6 +176,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
-
+export const { resetError } = authSlice.actions;
 export default authSlice.reducer;
