@@ -79,15 +79,6 @@ export const fetchSharedWithMe = createAsyncThunk(
           created_at: new Date().toISOString(),
           active: true,
         },
-        {
-          id: '4',
-          note_id: '4',
-          permissions: 'edit',
-          target_user_id: '1',
-          source_user_id: '3',
-          created_at: new Date().toISOString(),
-          active: true,
-        },
       ];
       return shares;
     } catch (error: any) {
@@ -104,16 +95,15 @@ const sharesSlice = createSlice({
     resetSharesError: (state) => {
       state.error = null;
     },
-    updateShareStatus: (state, action: PayloadAction<{ id: string; active: boolean }>) => {
-      const { id, active } = action.payload;
-      const share = state.sharedByMe.find(s => s.id === id);
-      if (share) {
-        share.active = active;
+    deactivateShare: (state, action: PayloadAction<string>) => {
+      const shareByMe = state.sharedByMe.find(share => share.id === action.payload);
+      if (shareByMe) {
+        shareByMe.active = false;
       }
     },
   },
   extraReducers: (builder) => {
-    // Fetch shares shared by me
+    // Fetch shares created by me
     builder
       .addCase(fetchSharedByMe.pending, (state) => {
         state.loading = true;
@@ -127,7 +117,7 @@ const sharesSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       });
-
+    
     // Fetch shares shared with me
     builder
       .addCase(fetchSharedWithMe.pending, (state) => {
@@ -145,5 +135,5 @@ const sharesSlice = createSlice({
   },
 });
 
-export const { resetSharesError, updateShareStatus } = sharesSlice.actions;
+export const { resetSharesError, deactivateShare } = sharesSlice.actions;
 export default sharesSlice.reducer;
